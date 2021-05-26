@@ -1,34 +1,70 @@
 import * as THREE from "/build/three.module.js";
 import { OrbitControls } from "/jsm/controls/OrbitControls";
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-const controls = new OrbitControls(camera, renderer.domElement);
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
-    wireframe: true,
-});
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
-camera.position.z = 2;
-window.addEventListener("resize", onWindowResize, false);
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    render();
+import Stats from "/jsm/libs/stats.module";
+import { GUI } from "/jsm/libs/dat.gui.module";
+export default class Sketch {
+    constructor() {
+        this.settings = () => {
+            this.stats = Stats();
+            this.canvas.appendChild(this.stats.dom);
+            this.gui = new GUI({ autoPlace: true });
+            this.gui.add(this.camera.position, "z", 0, 20, 1);
+            this.gui.domElement.id = "gui";
+            this.canvas.appendChild(this.gui.domElement);
+        };
+        this.render = () => {
+            requestAnimationFrame(this.render);
+            this.controls.update();
+            this.stats.update();
+            this.mesh.rotation.x += 0.01;
+            this.mesh.rotation.y += 0.02;
+            this.renderer.render(this.scene, this.camera);
+        };
+        this.resize = () => {
+            this.width = window.innerWidth;
+            this.height = window.innerHeight;
+            this.renderer.setSize(this.width, this.height);
+            this.camera.updateProjectionMatrix();
+            this.renderer.render(this.scene, this.camera);
+        };
+        this.scene = new THREE.Scene();
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.aspect = this.width / this.height;
+        // Renderer
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(this.width, this.height);
+        this.renderer.setClearColor(0xffffff, 1);
+        this.canvas = document.getElementById("canvas");
+        this.canvas.appendChild(this.renderer.domElement);
+        //PERSPECTIVE CAMERA
+        this.camera = new THREE.PerspectiveCamera(75, this.aspect, 0.1, 1000);
+        //ORTHOGRAPHIC CAMERA
+        // const fustrumSize = 1;
+        // this.camera = new THREE.OrthographicCamera(
+        //   fustrumSize / -2,
+        //   fustrumSize / 2,
+        //   fustrumSize / 2,
+        //   fustrumSize / -2,
+        //   0.1,
+        //   1000
+        // );
+        this.camera.position.set(0, 0, 2);
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.settings();
+        this.addObjects();
+        this.render();
+        window.addEventListener("resize", this.resize, false);
+    }
+    addObjects() {
+        this.material = new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            wireframe: true,
+        });
+        this.geometry = new THREE.BoxGeometry();
+        this.mesh = new THREE.Mesh(this.geometry, this.material);
+        this.scene.add(this.mesh);
+    }
 }
-const animate = function () {
-    requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
-    controls.update();
-    render();
-};
-function render() {
-    renderer.render(scene, camera);
-}
-animate();
+new Sketch();
