@@ -45,13 +45,17 @@ class App {
         )
       )
     );
+    app.use(
+      "/shader/",
+      express.static(path.join(__dirname, "../client/shader/"))
+    );
 
     this.server = new http.Server(app);
   }
 
   public Start() {
     this.server.listen(this.port, () => {
-      console.log(`Server listening on port ${this.port}.`);
+      console.log(`Server Running :: http://127.0.0.1:${this.port}.`);
     });
   }
 }

@@ -2,6 +2,8 @@ import * as THREE from "/build/three.module.js";
 import { OrbitControls } from "/jsm/controls/OrbitControls";
 import Stats from "/jsm/libs/stats.module";
 import { GUI } from "/jsm/libs/dat.gui.module";
+import fragment from "/shader/fragment.js";
+import vertex from "/shader/vertex.js";
 export default class Sketch {
     constructor() {
         this.settings = () => {
@@ -14,7 +16,8 @@ export default class Sketch {
         };
         this.render = () => {
             requestAnimationFrame(this.render);
-            this.controls.update();
+            this.time += 0.0166;
+            this.material.uniforms.time.value = this.time;
             this.stats.update();
             this.mesh.rotation.x += 0.01;
             this.mesh.rotation.y += 0.02;
@@ -24,6 +27,7 @@ export default class Sketch {
             this.width = window.innerWidth;
             this.height = window.innerHeight;
             this.renderer.setSize(this.width, this.height);
+            this.camera.aspect = this.width / this.height;
             this.camera.updateProjectionMatrix();
             this.renderer.render(this.scene, this.camera);
         };
@@ -52,16 +56,34 @@ export default class Sketch {
         // );
         this.camera.position.set(0, 0, 2);
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.time = 0;
         this.settings();
         this.addObjects();
         this.render();
         window.addEventListener("resize", this.resize, false);
     }
     addObjects() {
-        this.material = new THREE.MeshBasicMaterial({
-            color: 0x00ff00,
-            wireframe: true,
+        this.material = new THREE.ShaderMaterial({
+            extensions: {
+                derivatives: true,
+            },
+            side: THREE.DoubleSide,
+            uniforms: {
+                time: { value: 0 },
+                progress: { value: 0 },
+                // image: {
+                //   value: new THREE.TextureLoader().load(),
+                // },
+                // uViewport: { value: new THREE.Vector2(this.width, this.height) },
+                resolution: { value: new THREE.Vector4() },
+                uvRate1: {
+                    value: new THREE.Vector2(1, 1),
+                },
+            },
+            vertexShader: vertex(),
+            fragmentShader: fragment(),
         });
+        // this.geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
         this.geometry = new THREE.BoxGeometry();
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.scene.add(this.mesh);

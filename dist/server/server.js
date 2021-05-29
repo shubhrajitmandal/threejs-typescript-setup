@@ -16,11 +16,12 @@ class App {
         app.use("/jsm/controls/OrbitControls", express_1.default.static(path_1.default.join(__dirname, "../../node_modules/three/examples/jsm/controls/OrbitControls.js")));
         app.use("/jsm/libs/stats.module", express_1.default.static(path_1.default.join(__dirname, "../../node_modules/three/examples/jsm/libs/stats.module.js")));
         app.use("/jsm/libs/dat.gui.module", express_1.default.static(path_1.default.join(__dirname, "../../node_modules/three/examples/jsm/libs/dat.gui.module.js")));
+        app.use("/shader/", express_1.default.static(path_1.default.join(__dirname, "../client/shader/")));
         this.server = new http_1.default.Server(app);
     }
     Start() {
         this.server.listen(this.port, () => {
-            console.log(`Server listening on port ${this.port}.`);
+            console.log(`Server Running :: http://127.0.0.1:${this.port}.`);
         });
     }
 }
